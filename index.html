@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Resume Generator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+}
+
+.container{
+    width:100%;
+    max-width:1100px;
+    backdrop-filter:blur(20px);
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:25px;
+    padding:35px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.2);
+    color:white;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.header h1{
+    font-size:38px;
+    font-weight:700;
+}
+
+.header p{
+    opacity:0.8;
+    margin-top:8px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.full-width{
+    grid-column:1/3;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    margin-bottom:8px;
+    font-weight:500;
+}
+
+input,
+textarea{
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:rgba(255,255,255,0.15);
+    color:white;
+    outline:none;
+    font-size:15px;
+    transition:.3s;
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:rgba(255,255,255,0.7);
+}
+
+input:focus,
+textarea:focus{
+    background:rgba(255,255,255,0.25);
+    transform:translateY(-2px);
+}
+
+textarea{
+    resize:vertical;
+    min-height:120px;
+}
+
+.button-container{
+    margin-top:25px;
+}
+
+button{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:14px;
+    background:white;
+    color:#2563eb;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 20px rgba(0,0,0,0.2);
+}
+
+.loading{
+    display:none;
+    text-align:center;
+    margin-top:20px;
+}
+
+.spinner{
+    width:45px;
+    height:45px;
+    border:4px solid rgba(255,255,255,0.3);
+    border-top:4px solid white;
+    border-radius:50%;
+    margin:auto;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    100%{
+        transform:rotate(360deg);
+    }
+}
+
+.output-section{
+    margin-top:30px;
+}
+
+.output-title{
+    margin-bottom:15px;
+    font-size:24px;
+}
+
+#result{
+    background:white;
+    color:#222;
+    border-radius:15px;
+    padding:25px;
+    min-height:250px;
+    white-space:pre-wrap;
+    line-height:1.8;
+    overflow:auto;
+}
+
+.footer{
+    margin-top:20px;
+    text-align:center;
+    opacity:0.8;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+
+.form-grid{
+    grid-template-columns:1fr;
+}
+
+.full-width{
+    grid-column:auto;
+}
+
+.header h1{
+    font-size:28px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>AI Resume Generator</h1>
+<p>Create professional ATS-friendly resumes instantly</p>
+</div>
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Full Name</label>
+<input type="text" id="name" placeholder="Enter your name">
+</div>
+
+<div class="form-group">
+<label>Email</label>
+<input type="email" id="email" placeholder="Enter your email">
+</div>
+
+<div class="form-group">
+<label>Phone</label>
+<input type="text" id="phone" placeholder="Enter your phone number">
+</div>
+
+<div class="form-group">
+<label>Target Job Role</label>
+<input type="text" id="job_role" placeholder="Backend Developer">
+</div>
+
+<div class="form-group full-width">
+<label>Skills</label>
+<textarea id="skills" placeholder="Python, FastAPI, SQL, Docker"></textarea>
+</div>
+
+<div class="form-group full-width">
+<label>Experience</label>
+<textarea id="experience" placeholder="Describe your experience"></textarea>
+</div>
+
+<div class="form-group full-width">
+<label>Education</label>
+<textarea id="education" placeholder="B.Tech Computer Science"></textarea>
+</div>
+
+<div class="form-group full-width">
+<label>Projects</label>
+<textarea id="projects" placeholder="AI Resume Generator, Sales Prediction System"></textarea>
+</div>
+
+</div>
+
+<div class="button-container">
+<button onclick="generateResume()">
+Generate Resume
+</button>
+</div>
+
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<p style="margin-top:10px;">Generating Resume...</p>
+</div>
+
+<div class="output-section">
+<div class="output-title">
+Generated Resume
+</div>
+
+<div id="result">
+Your AI generated resume will appear here...
+</div>
+</div>
+
+<div class="footer">
+Powered by FastAPI & Groq AI
+</div>
+
+</div>
+
+<script>
+
+async function generateResume(){
+
+const loading=document.getElementById("loading");
+const result=document.getElementById("result");
+
+loading.style.display="block";
+result.innerHTML="";
+
+try{
+
+const response=await fetch(
+"http://127.0.0.1:8000/generate-resume",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+name:document.getElementById("name").value,
+email:document.getElementById("email").value,
+phone:document.getElementById("phone").value,
+skills:document.getElementById("skills").value,
+experience:document.getElementById("experience").value,
+education:document.getElementById("education").value,
+projects:document.getElementById("projects").value,
+job_role:document.getElementById("job_role").value
+})
+}
+);
+
+const data=await response.json();
+
+let resumeText="";
+
+if(data.data){
+
+resumeText=data.data
+.replace(/\*/g,"")
+.replace(/#/g,"")
+.replace(/^\s*[-•]\s*/gm,"");
+
+result.innerText=resumeText;
+
+}else{
+
+result.innerText=JSON.stringify(data,null,2);
+
+}
+
+}catch(error){
+
+result.innerHTML=
+"<span style='color:red'>Error: "+
+error.message+
+"</span>";
+
+}
+
+loading.style.display="none";
+
+}
+
+</script>
+
+</body>
+</html>
